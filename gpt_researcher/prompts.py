@@ -526,6 +526,12 @@ response:
     "server": "🧪 Chemistry Research Agent",
     "agent_role_prompt": "You are an expert chemistry research AI assistant with deep knowledge of organic, inorganic, physical, and biochemistry. Your primary goal is to compose comprehensive, rigorous, and well-structured chemistry research reports. You must use proper LaTeX notation for chemical equations and mathematical expressions, IUPAC nomenclature, and cite peer-reviewed sources from academic journals and PubChem. Structure reports with: Abstract, Introduction, Molecular/Reaction Analysis, Results, and Discussion sections."
 }
+task: "compare the mechanical properties and corrosion resistance of Ti-6Al-4V vs Inconel 718 for aerospace turbine blades"
+response:
+{
+    "server": "🔩 Materials Science Research Agent",
+    "agent_role_prompt": "You are an expert materials science and engineering research AI assistant with deep knowledge of metals, alloys, ceramics, polymers, composites, and advanced materials. Your primary goal is to compose comprehensive, rigorous, and well-structured materials research reports. You must include quantitative material properties (yield strength, hardness, thermal conductivity, density, elastic modulus, etc.) with proper SI units, use LaTeX notation for equations (inline: $...$ and display: $$...$$), reference phase diagrams and microstructure analysis where relevant, and cite peer-reviewed sources from materials science journals, the Materials Project database, and ASM International. Structure reports with: Abstract, Introduction, Material Properties & Composition, Microstructure & Phase Analysis, Mechanical/Thermal/Chemical Properties, Performance Comparison, Applications, and Conclusion sections."
+}
 """
 
     @staticmethod
@@ -978,6 +984,227 @@ Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.
 """
 
 
+class MaterialsPromptFamily(PromptFamily):
+    """Prompt family specialized for Materials Science research.
+
+    Covers metals, alloys, ceramics, chemicals, composites, and advanced materials.
+    Enforces quantitative property reporting, phase diagram references, microstructure
+    analysis, LaTeX notation, and prioritizes materials science databases and journals.
+    """
+
+    @staticmethod
+    def generate_report_prompt(
+        question: str,
+        context,
+        report_source: str,
+        report_format="apa",
+        total_words=1000,
+        tone=None,
+        language="english",
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
+
+eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Information: "{context}"
+---
+Using the above information, answer the following query or task: "{question}" in a detailed materials science research report --
+
+**MATERIALS SCIENCE REPORT STRUCTURE:**
+The report MUST follow this structure:
+1. **Abstract** - Concise summary (150-250 words) of the materials investigated, methods, key findings, and conclusions.
+2. **Introduction** - Background on the material system(s), research motivation, and engineering significance.
+3. **Material Composition & Classification** - Chemical composition, crystal structure, material class (metal/alloy/ceramic/polymer/composite), designation standards (ASTM, AISI, UNS, ISO).
+4. **Microstructure & Phase Analysis** - Phase diagrams, grain structure, phase transformations, heat treatment effects, crystal lattice parameters.
+5. **Mechanical Properties** - Yield strength ($\\sigma_y$), ultimate tensile strength ($\\sigma_{{UTS}}$), elastic modulus ($E$), hardness (HV/HRC/HB), ductility, fatigue life, fracture toughness ($K_{{IC}}$), creep resistance. Present in comparison tables with SI units.
+6. **Thermal Properties** - Thermal conductivity ($k$), specific heat ($c_p$), thermal expansion coefficient ($\\alpha$), melting point ($T_m$), operating temperature range.
+7. **Chemical Properties & Corrosion Resistance** - Oxidation behavior, corrosion rates, galvanic compatibility, chemical stability, passivation behavior.
+8. **Processing & Manufacturing** - Fabrication methods (casting, forging, sintering, additive manufacturing), heat treatment schedules, joining techniques.
+9. **Applications & Performance** - Engineering applications, service conditions, performance comparisons, failure modes.
+10. **Conclusion** - Summary, material selection recommendations, limitations, and future research directions.
+11. **References** - Full citation list.
+
+**QUANTITATIVE DATA REQUIREMENTS:**
+- You MUST include numerical property values with SI units for ALL material properties discussed.
+- Present comparative data in markdown tables with clear column headers and units:
+
+| Property | Material A | Material B | Units |
+|----------|-----------|-----------|-------|
+| Yield Strength | 880 | 1035 | MPa |
+| Elastic Modulus | 114 | 205 | GPa |
+
+- Use LaTeX for equations: inline ($\\sigma = F/A$) and display:
+$$\\sigma_{{UTS}} = \\frac{{F_{{max}}}}{{A_0}}$$
+- Include phase diagram descriptions and transformation temperatures (e.g., $A_1$, $A_3$, $M_s$, $M_f$).
+- Report density ($\\rho$), Poisson's ratio ($\\nu$), and other fundamental constants.
+- Use standard material designations (e.g., AISI 316L, Ti-6Al-4V, Al$_2$O$_3$, SiC, Inconel 718).
+
+**GENERAL GUIDELINES:**
+- The report should be well structured, informative, in-depth, and comprehensive, with facts and numbers if available and at least {total_words} words.
+- You should strive to write the report as long as you can using all relevant and necessary information provided.
+- You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
+- You MUST write the report with markdown syntax and {report_format} format.
+- Structure your report with clear markdown headers: use # for the main title, ## for major sections, and ### for subsections.
+- You MUST prioritize peer-reviewed materials science sources (Acta Materialia, Journal of Materials Science, Metallurgical Transactions, Materials Project, ASM International) over informal web sources.
+- You must also prioritize new articles over older articles if the source can be trusted.
+- You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###) to structure your report clearly.
+- Use in-text citation references in {report_format} format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
+- Don't forget to add a reference list at the end of the report in {report_format} format and full url links without hyperlinks.
+- {reference_prompt}
+- {tone_prompt}
+You MUST write the report in the following language: {language}.
+Please do your best, this is very important to my career.
+Assume that the current date is {date.today()}.
+"""
+
+    @staticmethod
+    def generate_search_queries_prompt(
+        question: str,
+        parent_query: str,
+        report_type: str,
+        max_iterations: int = 3,
+        context: List[Dict[str, Any]] = [],
+    ):
+        if (
+            report_type == ReportType.DetailedReport.value
+            or report_type == ReportType.SubtopicReport.value
+        ):
+            task = f"{parent_query} - {question}"
+        else:
+            task = question
+
+        context_prompt = f"""
+You are a seasoned materials science research assistant tasked with generating search queries to find relevant technical information for the following task: "{task}".
+Context: {context}
+
+Use this context to inform and refine your search queries. Focus on finding peer-reviewed papers, materials databases, technical datasheets, and authoritative engineering references. Consider searching Materials Project, ASM International, arXiv, Semantic Scholar, and engineering databases.
+""" if context else ""
+
+        dynamic_example = ", ".join([f'"query {i+1}"' for i in range(max_iterations)])
+
+        return f"""Write {max_iterations} search queries to find materials science and engineering sources for the following research task: "{task}"
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+
+IMPORTANT: Generate queries optimized for materials science databases and academic search engines. Include:
+- Specific material designations and alloy names (e.g., Ti-6Al-4V, AISI 316L, Al2O3, SiC, Inconel 718)
+- Material properties of interest (yield strength, thermal conductivity, corrosion resistance, hardness, etc.)
+- Processing methods (heat treatment, sintering, additive manufacturing, casting)
+- Phase diagram and microstructure terminology
+- Comparison queries between competing materials for specific applications
+- Search terms for Materials Project, ASM International handbooks, and ASTM standards
+
+{context_prompt}
+You must respond with a list of strings in the following format: [{dynamic_example}].
+The response should contain ONLY the list.
+"""
+
+    @staticmethod
+    def curate_sources(query, sources, max_results=10):
+        return f"""Your goal is to evaluate and curate the provided scraped content for the materials science research task: "{query}"
+while prioritizing peer-reviewed materials science sources, quantitative property data, and engineering standards.
+
+The final curated list will be used as context for creating a materials science research report, so prioritize:
+- Peer-reviewed journal articles from materials science and engineering journals
+- Sources with quantitative material property data (strength, hardness, conductivity, etc.)
+- Materials Project database entries and ASM International references
+- ASTM/ISO standards and technical datasheets
+- Sources containing phase diagrams, microstructure images/descriptions, and processing parameters
+- Comparative studies between different materials or processing routes
+
+EVALUATION GUIDELINES:
+1. Assess each source based on:
+   - Data Quality: Prioritize sources with measured/reported property values, test conditions, and units.
+   - Scientific Rigor: Favor peer-reviewed journals (Acta Materialia, J. Mater. Sci., Met. Trans., Corrosion Science).
+   - Relevance: Include sources about specific material compositions, grades, and designations mentioned in the query.
+   - Completeness: Prefer sources that report multiple properties for the same material under defined conditions.
+   - Standards Compliance: Favor sources referencing ASTM, ISO, or equivalent testing standards.
+2. Source Selection:
+   - Include as many relevant sources as possible, up to {max_results}, focusing on quantitative depth.
+   - Strongly prioritize sources with property comparison tables, phase diagrams, and microstructure analysis.
+   - Deprioritize marketing material, supplier catalogs without data, and generic overviews.
+3. Content Retention:
+   - DO NOT rewrite, summarize, or condense any source content.
+   - Retain all usable information, especially numerical data, property tables, and composition details.
+
+SOURCES LIST TO EVALUATE:
+{sources}
+
+You MUST return your response in the EXACT sources JSON list format as the original sources.
+The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+"""
+
+    @staticmethod
+    def generate_deep_research_prompt(
+        question: str,
+        context: str,
+        report_source: str,
+        report_format="apa",
+        tone=None,
+        total_words=2000,
+        language: str = "english"
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report.
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Using the following hierarchically researched materials science information and citations:
+
+"{context}"
+
+Write a comprehensive materials science research report answering the query: "{question}"
+
+The report MUST:
+1. Follow materials science report structure: Abstract, Introduction, Composition & Classification, Microstructure & Phase Analysis, Mechanical Properties, Thermal Properties, Chemical Properties, Processing, Applications, Conclusion
+2. Include quantitative property data with SI units in comparison tables
+3. Use LaTeX notation for equations (inline: $...$ and display: $$...$$)
+4. Reference phase diagrams, TTT/CCT diagrams, and microstructure descriptions where relevant
+5. Use standard material designations (AISI, UNS, ASTM, ISO)
+6. Synthesize information from multiple levels of research depth
+7. Have a minimum length of {total_words} words
+8. Follow {report_format} format with markdown syntax
+9. Use markdown tables extensively for property comparisons
+
+Additional requirements:
+- Prioritize peer-reviewed materials science journals and databases
+- Include mechanical, thermal, and chemical property data with testing conditions
+- Compare materials quantitatively rather than qualitatively wherever possible
+- Discuss processing-structure-property relationships
+- You MUST determine your own concrete and valid opinion on material selection based on the given information
+- Use in-text citation references in {report_format} format as markdown hyperlinks: ([in-text citation](url))
+- {tone_prompt}
+- Write in {language}
+
+{reference_prompt}
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.
+"""
+
+
 class GranitePromptFamily(PromptFamily):
     """Prompts for IBM's granite models"""
 
@@ -1084,6 +1311,7 @@ report_type_mapping = {
     ReportType.PhysicsReport.value: "generate_report_prompt",
     ReportType.MathematicsReport.value: "generate_report_prompt",
     ReportType.ChemistryReport.value: "generate_report_prompt",
+    ReportType.MaterialsReport.value: "generate_report_prompt",
 }
 
 
@@ -1112,6 +1340,7 @@ prompt_family_mapping = {
     PromptFamilyEnum.Granite32.value: Granite3PromptFamily,
     PromptFamilyEnum.Granite33.value: Granite33PromptFamily,
     PromptFamilyEnum.STEM.value: STEMPromptFamily,
+    PromptFamilyEnum.Materials.value: MaterialsPromptFamily,
 }
 
 

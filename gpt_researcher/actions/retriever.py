@@ -97,6 +97,11 @@ def get_retriever(retriever: str):
 
             return PubChemSearch
 
+        case "materials_project":
+            from gpt_researcher.retrievers import MaterialsProjectSearch
+
+            return MaterialsProjectSearch
+
         case _:
             return None
 

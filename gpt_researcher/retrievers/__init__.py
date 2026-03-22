@@ -14,6 +14,7 @@ from .exa.exa import ExaSearch
 from .mcp import MCPRetriever
 from .bocha.bocha import BoChaSearch
 from .pubchem.pubchem import PubChemSearch
+from .materials_project.materials_project import MaterialsProjectSearch
 
 __all__ = [
     "TavilySearch",
@@ -32,4 +33,5 @@ __all__ = [
     "MCPRetriever",
     "BoChaSearch",
     "PubChemSearch",
+    "MaterialsProjectSearch",
 ]

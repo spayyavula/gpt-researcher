@@ -28,6 +28,7 @@ class ReportType(Enum):
     PhysicsReport = "physics_report"
     MathematicsReport = "mathematics_report"
     ChemistryReport = "chemistry_report"
+    MaterialsReport = "materials_report"
 
 
 class ReportSource(Enum):
@@ -103,3 +104,4 @@ class PromptFamily(Enum):
     Granite32 = "granite3.2"
     Granite33 = "granite3.3"
     STEM = "stem"
+    Materials = "materials"

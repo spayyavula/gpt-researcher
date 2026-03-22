@@ -75,6 +75,7 @@ VALID_RETRIEVERS = [
     "exa",
     "mcp",
     "pubchem",
+    "materials_project",
     "mock"
 ]
 
