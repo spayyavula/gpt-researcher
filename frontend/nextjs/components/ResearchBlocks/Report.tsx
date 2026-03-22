@@ -2,6 +2,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from 'react';
 import { toast } from "react-hot-toast";
 import { markdownToHtml } from '../../helpers/markdownHelper';
+import { useKatexRender } from '../../helpers/useKatexRender';
 import '../../styles/markdown.css';
 import { useResearchHistoryContext } from '../../hooks/ResearchHistoryContext';
 import { ChatMessage } from '../../types/data';
@@ -17,6 +18,8 @@ export default function Report({ answer, researchId }: { answer: string, researc
         markdownToHtml(answer).then((html) => setHtmlContent(html));
       }
     }, [answer]);
+
+    useKatexRender(htmlContent);
     
     return (
       <div className="container flex h-auto w-full shrink-0 gap-4 bg-black/30 backdrop-blur-md shadow-lg rounded-lg border border-solid border-gray-700/40 p-5">

@@ -223,4 +223,62 @@
     margin-left: 2em;
     margin-bottom: 0.5em;
   }
+
+  /* LaTeX / KaTeX Math Rendering */
+  .math-display {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+    padding: 1em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .math-inline {
+    display: inline;
+    padding: 0 0.15em;
+  }
+
+  /* KaTeX overrides for dark theme */
+  .katex {
+    font-size: 1.1em;
+    color: #e2e8f0;
+  }
+
+  .katex-display {
+    margin: 1.5em 0;
+    padding: 0.8em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background-color: rgba(17, 24, 39, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+
+  .katex-display > .katex {
+    font-size: 1.15em;
+  }
+
+  /* Equation numbering style */
+  .katex-display .tag {
+    position: absolute;
+    right: 0;
+    padding-right: 0.5em;
+    color: #9CA3AF;
+    font-size: 0.9em;
+  }
+
+  /* Scrollbar for wide equations */
+  .katex-display::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .katex-display::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .katex-display::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.5);
+    border-radius: 2px;
+  }
 } 

@@ -92,6 +92,11 @@ def get_retriever(retriever: str):
 
             return MCPRetriever
 
+        case "pubchem":
+            from gpt_researcher.retrievers import PubChemSearch
+
+            return PubChemSearch
+
         case _:
             return None
 

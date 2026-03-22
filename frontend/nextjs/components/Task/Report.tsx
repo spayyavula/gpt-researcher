@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { markdownToHtml } from '../../helpers/markdownHelper';
+import { useKatexRender } from '../../helpers/useKatexRender';
 import '../../styles/markdown.css';
 
 export default function Report({report}:any) {
     const [htmlContent, setHtmlContent] = useState('');
+
+    useKatexRender(htmlContent);
 
     useEffect(() => {
         const convertMarkdownToHtml = async () => {

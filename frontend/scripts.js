@@ -1092,6 +1092,20 @@ const GPTResearcher = (() => {
       reportContainer.innerHTML = markdownOutput;
     }
 
+    // Render LaTeX math expressions if KaTeX auto-render is available
+    if (window.renderMathInElement) {
+      window.renderMathInElement(reportContainer, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\[', right: '\\]', display: true },
+          { left: '\\(', right: '\\)', display: false },
+        ],
+        throwOnError: false,
+        trust: true,
+      });
+    }
+
     // Auto-scroll to the bottom of the container
     reportContainer.scrollTop = reportContainer.scrollHeight;
   }

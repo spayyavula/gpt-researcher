@@ -3,6 +3,7 @@ import { Lexend } from "next/font/google";
 import PlausibleProvider from "next-plausible";
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { ResearchHistoryProvider } from "@/hooks/ResearchHistoryContext";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 import Script from 'next/script';
 
@@ -64,6 +65,9 @@ export default function RootLayout({
       <head>
         <PlausibleProvider domain="localhost:3000" />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!} />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css" integrity="sha384-zh0CIslj3TiOf4SFNEjMwSB1eFxb5tCrEa3ZqEBNbQ6C4ZL8UVhFp1NvGFxDPPO" crossOrigin="anonymous" />
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js" integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu/FRQo/kDpamMHYo/l/LIRb/GClFHIBN2" crossOrigin="anonymous"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrKSYFEL/lrc/KVLm6DKm1ZEXnBGG0+Wp/sFrgkHaUVBx8JTGZ7ZIkKdEYFr" crossOrigin="anonymous"></script>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="apple-touch-icon" href="/img/gptr-black-logo.png" />

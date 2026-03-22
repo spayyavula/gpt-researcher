@@ -1,6 +1,7 @@
 import { remark } from 'remark';
 import html from 'remark-html';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import { Compatible } from "vfile";
 
 /**
@@ -32,7 +33,36 @@ export const fixListItemParagraphIssue = (htmlContent: string): string => {
 };
 
 /**
- * Converts markdown to HTML with GitHub Flavored Markdown support and adds target="_blank" to links
+ * Renders LaTeX math expressions in HTML content using KaTeX.
+ * Handles both display math ($$...$$) and inline math ($...$).
+ * @param htmlContent - The HTML content potentially containing LaTeX expressions
+ * @returns The processed HTML with rendered math expressions
+ */
+export const renderLatexExpressions = (htmlContent: string): string => {
+  // Process display math first ($$...$$) - these become centered block equations
+  htmlContent = htmlContent.replace(
+    /\$\$([\s\S]*?)\$\$/g,
+    (_, tex) => {
+      const cleaned = tex.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+      return `<div class="math-display">\\[${cleaned}\\]</div>`;
+    }
+  );
+
+  // Process inline math ($...$) - avoid matching $$
+  htmlContent = htmlContent.replace(
+    /(?<!\$)\$(?!\$)((?:[^$\\]|\\.)+?)\$(?!\$)/g,
+    (_, tex) => {
+      const cleaned = tex.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+      return `<span class="math-inline">\\(${cleaned}\\)</span>`;
+    }
+  );
+
+  return htmlContent;
+};
+
+/**
+ * Converts markdown to HTML with GitHub Flavored Markdown support, LaTeX math rendering,
+ * and adds target="_blank" to links
  * @param markdown - The markdown content to convert
  * @returns Promise with the HTML content
  */
@@ -40,19 +70,21 @@ export const markdownToHtml = async (markdown: Compatible | string): Promise<str
   try {
     const result = await remark()
       .use(remarkGfm) // Add GitHub Flavored Markdown support (tables, strikethrough, etc.)
+      .use(remarkMath) // Parse math expressions ($...$ and $$...$$)
       .use(html, { sanitize: false })
       .process(markdown);
-    
+
     // Get the HTML string
     let htmlString = result.toString();
-    
+
     // Apply fixes
     htmlString = fixListItemParagraphIssue(htmlString);
     htmlString = addTargetBlankToLinks(htmlString);
-    
+    htmlString = renderLatexExpressions(htmlString);
+
     return htmlString;
   } catch (error) {
     console.error('Error converting Markdown to HTML:', error);
     return ''; // Handle error gracefully, return empty string or default content
   }
-}; 
+};

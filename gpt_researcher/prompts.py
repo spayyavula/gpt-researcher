@@ -508,6 +508,24 @@ response:
     "server":  "🌍 Travel Agent",
     "agent_role_prompt": "You are a world-travelled AI tour guide assistant. Your main purpose is to draft engaging, insightful, unbiased, and well-structured travel reports on given locations, including history, attractions, and cultural insights."
 }
+task: "explain the implications of quantum entanglement on information theory"
+response:
+{
+    "server": "⚛️ Physics Research Agent",
+    "agent_role_prompt": "You are an expert physics research AI assistant with deep knowledge of theoretical and experimental physics. Your primary goal is to compose comprehensive, rigorous, and well-structured physics research reports. You must use proper LaTeX notation for all equations (inline: $...$ and display: $$...$$), SI units throughout, and cite peer-reviewed sources from arXiv and academic journals. Structure reports with: Abstract, Theoretical Background, Analysis, Results, and Discussion sections."
+}
+task: "prove that the sum of angles in a triangle is 180 degrees using multiple methods"
+response:
+{
+    "server": "🔢 Mathematics Research Agent",
+    "agent_role_prompt": "You are an expert mathematics research AI assistant with deep knowledge across pure and applied mathematics. Your primary goal is to compose rigorous, well-structured mathematical reports with formal proofs and derivations. You must use proper LaTeX notation for all mathematical expressions (inline: $...$ and display: $$...$$), provide step-by-step proofs, and cite authoritative mathematical sources. Structure reports with clear theorem statements, proofs, corollaries, and examples."
+}
+task: "analyze the mechanism of action of CRISPR-Cas9 at the molecular level"
+response:
+{
+    "server": "🧪 Chemistry Research Agent",
+    "agent_role_prompt": "You are an expert chemistry research AI assistant with deep knowledge of organic, inorganic, physical, and biochemistry. Your primary goal is to compose comprehensive, rigorous, and well-structured chemistry research reports. You must use proper LaTeX notation for chemical equations and mathematical expressions, IUPAC nomenclature, and cite peer-reviewed sources from academic journals and PubChem. Structure reports with: Abstract, Introduction, Molecular/Reaction Analysis, Results, and Discussion sections."
+}
 """
 
     @staticmethod
@@ -749,6 +767,217 @@ Assume that the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y'
         return prompt
 
 
+class STEMPromptFamily(PromptFamily):
+    """Prompt family specialized for Physics, Mathematics, and Chemistry research.
+
+    Enforces LaTeX notation for equations, scientific report structure,
+    SI units, IUPAC nomenclature, and prioritizes peer-reviewed academic sources.
+    """
+
+    @staticmethod
+    def generate_report_prompt(
+        question: str,
+        context,
+        report_source: str,
+        report_format="apa",
+        total_words=1000,
+        tone=None,
+        language="english",
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
+
+eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Information: "{context}"
+---
+Using the above information, answer the following query or task: "{question}" in a detailed STEM research report --
+
+**SCIENTIFIC REPORT STRUCTURE:**
+The report MUST follow this structure:
+1. **Abstract** - A concise summary (150-250 words) of the research question, methods, key findings, and conclusions.
+2. **Introduction** - Background context, research question, and significance.
+3. **Theoretical Background / Literature Review** - Key theories, prior work, and foundational concepts.
+4. **Analysis / Methodology** - Detailed examination with mathematical derivations, experimental methods, or computational approaches.
+5. **Results and Discussion** - Key findings with interpretation, comparisons, and implications.
+6. **Conclusion** - Summary of findings, limitations, and future research directions.
+7. **References** - Full citation list.
+
+**MATHEMATICAL AND SCIENTIFIC NOTATION:**
+- You MUST use LaTeX notation for ALL mathematical expressions, equations, and formulas.
+- Use inline LaTeX with single dollar signs for expressions within text: $E = mc^2$
+- Use display LaTeX with double dollar signs for standalone equations:
+$$\\nabla \\times \\mathbf{{E}} = -\\frac{{\\partial \\mathbf{{B}}}}{{\\partial t}}$$
+- Number important equations for reference: Equation (1), Equation (2), etc.
+- Use proper LaTeX for Greek letters ($\\alpha$, $\\beta$, $\\gamma$), operators ($\\int$, $\\sum$, $\\prod$), and special symbols.
+- For chemistry: use LaTeX for chemical equations, e.g., $\\text{{2H}}_2 + \\text{{O}}_2 \\rightarrow \\text{{2H}}_2\\text{{O}}$
+- Use IUPAC nomenclature for chemical compounds.
+- Use SI units throughout (with proper formatting, e.g., $\\text{{kg}} \\cdot \\text{{m/s}}^2$).
+
+**GENERAL GUIDELINES:**
+- The report should be well structured, informative, in-depth, and comprehensive, with facts and numbers if available and at least {total_words} words.
+- You should strive to write the report as long as you can using all relevant and necessary information provided.
+- You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
+- You MUST write the report with markdown syntax and {report_format} format.
+- Structure your report with clear markdown headers: use # for the main title, ## for major sections, and ### for subsections.
+- Use markdown tables when presenting structured data, experimental results, or comparisons.
+- You MUST prioritize peer-reviewed academic sources (arXiv, journals, Semantic Scholar) over informal web sources.
+- You must also prioritize new articles over older articles if the source can be trusted.
+- You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###) to structure your report clearly.
+- Include diagrams descriptions where helpful (molecular structures, circuit diagrams, phase diagrams, etc.).
+- Use in-text citation references in {report_format} format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
+- Don't forget to add a reference list at the end of the report in {report_format} format and full url links without hyperlinks.
+- {reference_prompt}
+- {tone_prompt}
+You MUST write the report in the following language: {language}.
+Please do your best, this is very important to my career.
+Assume that the current date is {date.today()}.
+"""
+
+    @staticmethod
+    def generate_search_queries_prompt(
+        question: str,
+        parent_query: str,
+        report_type: str,
+        max_iterations: int = 3,
+        context: List[Dict[str, Any]] = [],
+    ):
+        if (
+            report_type == ReportType.DetailedReport.value
+            or report_type == ReportType.SubtopicReport.value
+        ):
+            task = f"{parent_query} - {question}"
+        else:
+            task = question
+
+        context_prompt = f"""
+You are a seasoned STEM research assistant tasked with generating search queries to find relevant scientific information for the following task: "{task}".
+Context: {context}
+
+Use this context to inform and refine your search queries. Focus on finding peer-reviewed papers, academic sources, and authoritative scientific references. Consider searching arXiv, Semantic Scholar, PubChem, and academic databases.
+""" if context else ""
+
+        dynamic_example = ", ".join([f'"query {i+1}"' for i in range(max_iterations)])
+
+        return f"""Write {max_iterations} search queries to find scientific and academic sources for the following STEM research task: "{task}"
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+
+IMPORTANT: Generate queries optimized for academic search engines (arXiv, Google Scholar, Semantic Scholar, PubChem). Include:
+- Technical/scientific terminology specific to the domain
+- Key equations, theorems, or compound names where relevant
+- Author names or seminal paper titles if applicable
+- Recent review papers or meta-analyses on the topic
+
+{context_prompt}
+You must respond with a list of strings in the following format: [{dynamic_example}].
+The response should contain ONLY the list.
+"""
+
+    @staticmethod
+    def curate_sources(query, sources, max_results=10):
+        return f"""Your goal is to evaluate and curate the provided scraped content for the STEM research task: "{query}"
+while prioritizing peer-reviewed academic sources, scientific rigor, and quantitative data.
+
+The final curated list will be used as context for creating a scientific research report, so prioritize:
+- Peer-reviewed journal articles and conference papers
+- Sources with mathematical derivations, experimental data, or rigorous proofs
+- ArXiv preprints, Semantic Scholar papers, and PubChem data
+- Sources containing equations, formulas, constants, and quantitative measurements
+- Authoritative textbooks and review articles
+
+EVALUATION GUIDELINES:
+1. Assess each source based on:
+   - Scientific Rigor: Prioritize peer-reviewed and academically authoritative sources.
+   - Quantitative Content: Give highest priority to sources with equations, data, measurements, and proofs.
+   - Relevance: Include sources directly related to the physics, mathematics, or chemistry aspects of the query.
+   - Currency: Prefer recent publications unless foundational/classic works are essential.
+   - Reproducibility: Favor sources that provide methodology details, experimental setups, or proof steps.
+2. Source Selection:
+   - Include as many relevant sources as possible, up to {max_results}, focusing on scientific depth.
+   - Strongly prioritize sources from: arXiv, Nature, Science, Physical Review, JACS, Angewandte Chemie, Mathematical Reviews, etc.
+   - Deprioritize blog posts, news articles, and non-peer-reviewed web content unless they contain unique data.
+3. Content Retention:
+   - DO NOT rewrite, summarize, or condense any source content.
+   - Retain all usable information, especially equations, data tables, and experimental results.
+
+SOURCES LIST TO EVALUATE:
+{sources}
+
+You MUST return your response in the EXACT sources JSON list format as the original sources.
+The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+"""
+
+    @staticmethod
+    def generate_deep_research_prompt(
+        question: str,
+        context: str,
+        report_source: str,
+        report_format="apa",
+        tone=None,
+        total_words=2000,
+        language: str = "english"
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report.
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Using the following hierarchically researched scientific information and citations:
+
+"{context}"
+
+Write a comprehensive STEM research report answering the query: "{question}"
+
+The report MUST:
+1. Follow scientific paper structure: Abstract, Introduction, Theoretical Background, Analysis, Results & Discussion, Conclusion
+2. Use LaTeX notation for ALL mathematical expressions (inline: $...$ and display: $$...$$)
+3. Use SI units and IUPAC nomenclature where applicable
+4. Include step-by-step derivations for key equations
+5. Synthesize information from multiple levels of research depth
+6. Integrate findings from various research branches with proper cross-referencing
+7. Have a minimum length of {total_words} words
+8. Follow {report_format} format with markdown syntax
+9. Use markdown tables for experimental data, comparisons, and structured results
+
+Additional requirements:
+- Prioritize peer-reviewed academic sources over informal web content
+- Include relevant physical constants, measurements, and uncertainties where applicable
+- Number important equations for cross-referencing within the report
+- Highlight connections between theoretical predictions and experimental observations
+- You MUST determine your own concrete and valid opinion based on the given information
+- Use in-text citation references in {report_format} format as markdown hyperlinks: ([in-text citation](url))
+- {tone_prompt}
+- Write in {language}
+
+{reference_prompt}
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.
+"""
+
+
 class GranitePromptFamily(PromptFamily):
     """Prompts for IBM's granite models"""
 
@@ -852,6 +1081,9 @@ report_type_mapping = {
     ReportType.CustomReport.value: "generate_custom_report_prompt",
     ReportType.SubtopicReport.value: "generate_subtopic_report_prompt",
     ReportType.DeepResearch.value: "generate_deep_research_prompt",
+    ReportType.PhysicsReport.value: "generate_report_prompt",
+    ReportType.MathematicsReport.value: "generate_report_prompt",
+    ReportType.ChemistryReport.value: "generate_report_prompt",
 }
 
 
@@ -879,6 +1111,7 @@ prompt_family_mapping = {
     PromptFamilyEnum.Granite31.value: Granite3PromptFamily,
     PromptFamilyEnum.Granite32.value: Granite3PromptFamily,
     PromptFamilyEnum.Granite33.value: Granite33PromptFamily,
+    PromptFamilyEnum.STEM.value: STEMPromptFamily,
 }
 
 

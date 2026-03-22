@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from "react-hot-toast";
 import { markdownToHtml } from '../../helpers/markdownHelper';
+import { useKatexRender } from '../../helpers/useKatexRender';
 import '../../styles/markdown.css';
 import Sources from './Sources';
 
@@ -44,7 +45,9 @@ export default function ChatResponse({ answer, metadata }: ChatResponseProps) {
         markdownToHtml(answer).then((html) => setHtmlContent(html));
       }
     }, [answer]);
-    
+
+    useKatexRender(htmlContent);
+
     // Format the answer for display
     const formattedAnswer = answer.trim() || 'No answer available.';
     

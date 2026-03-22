@@ -355,6 +355,35 @@ footer a:hover {
     background-color: rgba(255, 255, 255, 0.03);
 }
 
+/* LaTeX / KaTeX Math Rendering */
+#reportContainer .katex {
+    font-size: 1.1em;
+    color: #e2e8f0;
+}
+
+#reportContainer .katex-display {
+    margin: 1.5em 0;
+    padding: 0.8em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background-color: rgba(17, 24, 39, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+#reportContainer .katex-display > .katex {
+    font-size: 1.15em;
+}
+
+#reportContainer .katex-display::-webkit-scrollbar {
+    height: 4px;
+}
+
+#reportContainer .katex-display::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.5);
+    border-radius: 2px;
+}
+
 .tags-input {
     display: flex;
     flex-wrap: wrap;
