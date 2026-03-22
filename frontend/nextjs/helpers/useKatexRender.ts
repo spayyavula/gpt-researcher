@@ -20,7 +20,7 @@ export function useKatexRender(htmlContent: string) {
       if (window.renderMathInElement) {
         const mathElements = document.querySelectorAll('.markdown-content');
         mathElements.forEach((el) => {
-          window.renderMathInElement(el as HTMLElement, {
+          window.renderMathInElement!(el as HTMLElement, {
             delimiters: [
               { left: '\\[', right: '\\]', display: true },
               { left: '\\(', right: '\\)', display: false },

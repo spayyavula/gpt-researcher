@@ -5,6 +5,7 @@ import Sources from './ResearchBlocks/Sources';
 import ImageSection from './ResearchBlocks/ImageSection';
 import SubQuestions from './ResearchBlocks/elements/SubQuestions';
 import LogsSection from './ResearchBlocks/LogsSection';
+import AgentStatusPanel from './ResearchBlocks/AgentStatusPanel';
 import AccessReport from './ResearchBlocks/AccessReport';
 import { preprocessOrderedData } from '../utils/dataProcessing';
 import { Data } from '../types/data';
@@ -18,6 +19,7 @@ interface ResearchResultsProps {
   currentResearchId?: string;
   isProcessingChat?: boolean;
   onShareClick?: () => void;
+  loading?: boolean;
 }
 
 export const ResearchResults: React.FC<ResearchResultsProps> = ({
@@ -28,7 +30,8 @@ export const ResearchResults: React.FC<ResearchResultsProps> = ({
   handleClickSuggestion,
   currentResearchId,
   isProcessingChat = false,
-  onShareClick
+  onShareClick,
+  loading = false,
 }) => {
   const groupedData = preprocessOrderedData(orderedData);
   const pathData = groupedData.find(data => data.type === 'path');
@@ -70,6 +73,7 @@ export const ResearchResults: React.FC<ResearchResultsProps> = ({
   return (
     <>
       {initialQuestion && <Question question={initialQuestion.content} />}
+      {orderedData.length > 0 && <AgentStatusPanel logs={allLogs} loading={loading} />}
       {orderedData.length > 0 && <LogsSection logs={allLogs} />}
       {subqueriesComponent && (
         <SubQuestions

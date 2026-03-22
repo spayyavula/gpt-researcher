@@ -98,12 +98,12 @@ const ResearchPanel: React.FC<ResearchPanelProps> = ({
             orderedData={orderedData.filter(data => {
               // Keep everything except chat responses
               if (data.type === 'chat') return false;
-              
+
               // For questions, only keep the first/initial question
               if (data.type === 'question') {
                 return orderedData.indexOf(data) === 0;
               }
-              
+
               // Keep all other types
               return true;
             })}
@@ -112,6 +112,7 @@ const ResearchPanel: React.FC<ResearchPanelProps> = ({
             chatBoxSettings={chatBoxSettings}
             handleClickSuggestion={handleClickSuggestion}
             currentResearchId={currentResearchId}
+            loading={loading}
           />
           
           {/* Loading indicator - show during research */}
