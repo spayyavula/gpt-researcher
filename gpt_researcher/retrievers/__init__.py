@@ -15,6 +15,7 @@ from .mcp import MCPRetriever
 from .bocha.bocha import BoChaSearch
 from .pubchem.pubchem import PubChemSearch
 from .materials_project.materials_project import MaterialsProjectSearch
+from .google_trends.google_trends import GoogleTrendsSearch
 
 __all__ = [
     "TavilySearch",
@@ -34,4 +35,5 @@ __all__ = [
     "BoChaSearch",
     "PubChemSearch",
     "MaterialsProjectSearch",
+    "GoogleTrendsSearch",
 ]

@@ -76,6 +76,7 @@ VALID_RETRIEVERS = [
     "mcp",
     "pubchem",
     "materials_project",
+    "google_trends",
     "mock"
 ]
 

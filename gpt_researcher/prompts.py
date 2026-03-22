@@ -532,6 +532,12 @@ response:
     "server": "🔩 Materials Science Research Agent",
     "agent_role_prompt": "You are an expert materials science and engineering research AI assistant with deep knowledge of metals, alloys, ceramics, polymers, composites, and advanced materials. Your primary goal is to compose comprehensive, rigorous, and well-structured materials research reports. You must include quantitative material properties (yield strength, hardness, thermal conductivity, density, elastic modulus, etc.) with proper SI units, use LaTeX notation for equations (inline: $...$ and display: $$...$$), reference phase diagrams and microstructure analysis where relevant, and cite peer-reviewed sources from materials science journals, the Materials Project database, and ASM International. Structure reports with: Abstract, Introduction, Material Properties & Composition, Microstructure & Phase Analysis, Mechanical/Thermal/Chemical Properties, Performance Comparison, Applications, and Conclusion sections."
 }
+task: "find the best SEO keywords to acquire customers for a B2B SaaS project management tool"
+response:
+{
+    "server": "🎯 SEO Customer Acquisition Agent",
+    "agent_role_prompt": "You are an expert SEO strategist and customer acquisition specialist. Your primary goal is to compose comprehensive, data-driven, and actionable SEO research reports focused on converting organic search traffic into paying customers. You must analyze search intent (informational, navigational, commercial, transactional), map keywords to the customer acquisition funnel (TOFU/MOFU/BOFU), provide competitor gap analysis, and deliver prioritized action plans with effort/impact estimates. Structure reports with: Executive Summary, Keyword Opportunity Analysis, Competitor Benchmarking, Customer Acquisition Funnel Mapping, Content Strategy, Technical SEO Quick Wins, Priority Action Matrix, and ROI Projections. Always ground recommendations in search volume data, keyword difficulty, and conversion potential rather than vanity metrics like raw traffic."
+}
 """
 
     @staticmethod
@@ -984,6 +990,273 @@ Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.
 """
 
 
+class SEOPromptFamily(PromptFamily):
+    """Prompt family specialized for SEO and customer acquisition research.
+
+    Produces action-oriented SEO reports focused on converting organic search
+    traffic into customers. Enforces funnel mapping, competitor benchmarking,
+    priority action matrices, and ROI-focused recommendations.
+    """
+
+    @staticmethod
+    def generate_report_prompt(
+        question: str,
+        context,
+        report_source: str,
+        report_format="apa",
+        total_words=1000,
+        tone=None,
+        language="english",
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report:
+
+eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [url website](url)
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Information: "{context}"
+---
+Using the above information, answer the following query or task: "{question}" in a detailed SEO customer acquisition research report --
+
+**SEO CUSTOMER ACQUISITION REPORT STRUCTURE:**
+The report MUST follow this structure:
+
+1. **Executive Summary** - Business-focused overview (200-300 words): target market, primary keyword opportunities, estimated traffic potential, and top 3 recommended actions for customer acquisition.
+
+2. **Market & Keyword Opportunity Analysis**
+   - Identify high-value keywords grouped by search intent:
+     - **Informational** (awareness): "what is...", "how to...", "guide to..."
+     - **Commercial Investigation** (consideration): "best...", "top...", "vs...", "review..."
+     - **Transactional** (decision/purchase): "buy...", "pricing...", "free trial...", "sign up..."
+   - For each keyword cluster, include (where available from sources):
+     - Estimated monthly search volume
+     - Keyword difficulty (low/medium/high)
+     - Cost-per-click (CPC) as a proxy for commercial value
+     - Current ranking opportunity (gap vs. competitors)
+   - Present keyword data in markdown tables:
+
+   | Keyword | Search Intent | Est. Volume | Difficulty | CPC | Priority |
+   |---------|--------------|-------------|------------|-----|----------|
+   | example keyword | Commercial | 2,400/mo | Medium | $3.50 | High |
+
+3. **Competitor Benchmarking**
+   - Identify top 5 organic competitors for the target keyword space.
+   - Analyze competitor content strategies, top-ranking pages, and content gaps.
+   - Present competitor comparison in a markdown table:
+
+   | Competitor | Domain Authority (est.) | Top Keywords | Content Gap Opportunity |
+   |-----------|----------------------|--------------|------------------------|
+
+4. **Customer Acquisition Funnel Mapping**
+   - Map keywords and content types to the acquisition funnel:
+     - **TOFU (Top of Funnel)** - Awareness: blog posts, guides, educational content
+     - **MOFU (Middle of Funnel)** - Consideration: comparison pages, case studies, webinars
+     - **BOFU (Bottom of Funnel)** - Decision: product pages, pricing, testimonials, free trials
+   - For each funnel stage, recommend specific content pieces with target keywords.
+   - Estimate conversion potential at each stage.
+
+5. **Content Strategy Recommendations**
+   - Prioritized list of content to create/optimize for maximum customer acquisition impact.
+   - Each recommendation MUST include:
+     - Target keyword(s)
+     - Content type and format (blog, landing page, comparison, case study, etc.)
+     - Search intent alignment
+     - Funnel stage
+     - Effort estimate (Low / Medium / High)
+     - Expected impact on customer acquisition (Low / Medium / High)
+
+6. **Technical SEO Quick Wins** (if applicable based on available data)
+   - Top 5-10 technical issues by estimated traffic impact
+   - Page speed, mobile-friendliness, crawlability, schema markup opportunities
+   - Each issue with: problem description, impact estimate, fix difficulty
+
+7. **Local SEO Recommendations** (if applicable to the query)
+   - Google Business Profile optimization
+   - Local keyword targeting
+   - Review strategy and local citation building
+
+8. **Priority Action Matrix**
+   - Summary table of ALL recommended actions ranked by priority:
+
+   | # | Action | Effort | Impact | Timeline | Funnel Stage |
+   |---|--------|--------|--------|----------|-------------|
+   | 1 | Create comparison landing page for [keyword] | Medium | High | 2-4 weeks | MOFU |
+
+9. **ROI Projections & Estimates**
+   - Estimated organic traffic potential (3-6-12 month projections)
+   - Estimated conversion rates by funnel stage (use industry benchmarks)
+   - Projected customer acquisition from organic search
+   - **DISCLAIMER**: All projections are estimates based on available data and industry benchmarks. Actual results will vary based on execution quality, competition, and market conditions.
+
+10. **References** - Full citation list.
+
+**IMPORTANT GUIDELINES:**
+- FOCUS ON CUSTOMER ACQUISITION, not just rankings or traffic. Every recommendation must connect to how it drives potential customers through the funnel to conversion.
+- Be specific and actionable. "Improve your content" is NOT acceptable. "Create a 2,000-word comparison guide targeting '[keyword A] vs [keyword B]' to capture MOFU commercial intent traffic" IS acceptable.
+- Use markdown tables extensively for keyword data, competitor analysis, and action matrices.
+- Prioritize commercial and transactional intent keywords over purely informational ones when recommending quick wins.
+- Include estimated metrics wherever possible (search volume, difficulty, CPC, conversion rates).
+- The report should be at least {total_words} words.
+- You MUST write the report with markdown syntax and {report_format} format.
+- You MUST NOT include a table of contents, but DO include proper markdown headers (# ## ###).
+- Use in-text citation references in {report_format} format as markdown hyperlinks: ([in-text citation](url)).
+- {reference_prompt}
+- {tone_prompt}
+You MUST write the report in the following language: {language}.
+Please do your best, this is very important to my career.
+Assume that the current date is {date.today()}.
+"""
+
+    @staticmethod
+    def generate_search_queries_prompt(
+        question: str,
+        parent_query: str,
+        report_type: str,
+        max_iterations: int = 3,
+        context: List[Dict[str, Any]] = [],
+    ):
+        if (
+            report_type == ReportType.DetailedReport.value
+            or report_type == ReportType.SubtopicReport.value
+        ):
+            task = f"{parent_query} - {question}"
+        else:
+            task = question
+
+        context_prompt = f"""
+You are a seasoned SEO strategist tasked with generating search queries to find actionable SEO and customer acquisition data for the following task: "{task}".
+Context: {context}
+
+Use this context to refine your queries. Focus on finding keyword research data, competitor analysis, content strategy insights, conversion optimization tactics, and SEO best practices from authoritative sources.
+""" if context else ""
+
+        dynamic_example = ", ".join([f'"query {i+1}"' for i in range(max_iterations)])
+
+        return f"""Write {max_iterations} search queries to find SEO and customer acquisition data for the following task: "{task}"
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+
+IMPORTANT: Generate queries that will return ACTIONABLE SEO data for customer acquisition. Include a mix of:
+- Keyword research queries: "[industry/niche] high-converting keywords", "[product type] buyer intent keywords"
+- Competitor analysis: "[competitor name] SEO strategy", "top ranking sites for [target keyword]"
+- Content strategy: "[niche] content that converts", "SEO content funnel strategy [industry]"
+- Technical/local SEO: "[niche] technical SEO checklist", "local SEO strategy [business type]"
+- Conversion-focused: "[niche] SEO conversion rate benchmarks", "organic traffic customer acquisition [industry]"
+- Google Trends and seasonal data: "[keyword] search trends", "[niche] seasonal search demand"
+
+Prioritize queries that will return data with search volume, keyword difficulty, competitor insights, and conversion metrics.
+
+{context_prompt}
+You must respond with a list of strings in the following format: [{dynamic_example}].
+The response should contain ONLY the list.
+"""
+
+    @staticmethod
+    def curate_sources(query, sources, max_results=10):
+        return f"""Your goal is to evaluate and curate the provided scraped content for the SEO customer acquisition research task: "{query}"
+while prioritizing actionable SEO data, keyword metrics, competitor insights, and conversion-focused strategies.
+
+The final curated list will be used as context for creating an SEO customer acquisition report, so prioritize:
+- Sources with keyword data (search volume, difficulty, CPC, trends)
+- Competitor analysis and benchmarking data
+- Conversion rate data and customer acquisition metrics
+- Content strategy frameworks with proven results
+- Authoritative SEO publications (Search Engine Journal, Moz, Ahrefs Blog, Google Search Central, Backlinko, HubSpot)
+- Case studies with measurable SEO-driven customer acquisition results
+- Industry-specific SEO benchmarks and statistics
+
+EVALUATION GUIDELINES:
+1. Assess each source based on:
+   - Actionability: Prioritize sources with specific, implementable recommendations over theoretical discussions.
+   - Data Quality: Favor sources with concrete metrics (search volumes, rankings, conversion rates, revenue data).
+   - Authority: Prioritize recognized SEO publications, official Google documentation, and established marketing platforms.
+   - Recency: SEO data becomes stale quickly. Strongly prefer sources from the last 12-18 months.
+   - Conversion Focus: Prioritize sources that connect SEO efforts to customer acquisition outcomes, not just rankings.
+2. Source Selection:
+   - Include as many relevant sources as possible, up to {max_results}.
+   - Strongly prioritize sources with: keyword metrics, competitor data, funnel/conversion insights, and ROI data.
+   - Include at least one source focused on technical SEO if available.
+   - Deprioritize outdated SEO advice (pre-2023), generic "top 10 SEO tips" listicles, and sources without data backing.
+3. Content Retention:
+   - DO NOT rewrite, summarize, or condense any source content.
+   - Retain all keyword data, metrics, statistics, and actionable recommendations.
+
+SOURCES LIST TO EVALUATE:
+{sources}
+
+You MUST return your response in the EXACT sources JSON list format as the original sources.
+The response MUST not contain any markdown format or additional text (like ```json), just the JSON list!
+"""
+
+    @staticmethod
+    def generate_deep_research_prompt(
+        question: str,
+        context: str,
+        report_source: str,
+        report_format="apa",
+        tone=None,
+        total_words=2000,
+        language: str = "english"
+    ):
+        reference_prompt = ""
+        if report_source == ReportSource.Web.value:
+            reference_prompt = f"""
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Every url should be hyperlinked: [url website](url)
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report.
+"""
+        else:
+            reference_prompt = f"""
+You MUST write all used source document names at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each."
+"""
+
+        tone_prompt = f"Write the report in a {tone.value} tone." if tone else ""
+
+        return f"""
+Using the following hierarchically researched SEO and customer acquisition information and citations:
+
+"{context}"
+
+Write a comprehensive SEO customer acquisition research report answering the query: "{question}"
+
+The report MUST:
+1. Follow the SEO customer acquisition report structure: Executive Summary, Keyword Opportunity Analysis, Competitor Benchmarking, Customer Acquisition Funnel Mapping (TOFU/MOFU/BOFU), Content Strategy, Technical SEO Quick Wins, Priority Action Matrix, ROI Projections
+2. Focus on CONVERTING traffic to customers, not just driving traffic
+3. Include keyword data in tables with volume, difficulty, CPC, and intent classification
+4. Map every recommendation to a funnel stage (awareness/consideration/decision)
+5. Provide a Priority Action Matrix with effort/impact/timeline for every recommended action
+6. Synthesize information from multiple levels of research depth
+7. Have a minimum length of {total_words} words
+8. Follow {report_format} format with markdown syntax
+9. Use markdown tables extensively for keyword data, competitor analysis, and action plans
+
+Additional requirements:
+- Every recommendation must be specific and actionable (not generic advice)
+- Include estimated ROI projections with clear disclaimers that they are estimates
+- Prioritize commercial and transactional intent keywords for quick acquisition wins
+- Include both short-term quick wins (1-3 months) and long-term strategic plays (6-12 months)
+- You MUST determine your own concrete and valid opinion on SEO strategy based on the given information
+- Use in-text citation references in {report_format} format as markdown hyperlinks: ([in-text citation](url))
+- {tone_prompt}
+- Write in {language}
+
+{reference_prompt}
+
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')}.
+"""
+
+
 class MaterialsPromptFamily(PromptFamily):
     """Prompt family specialized for Materials Science research.
 
@@ -1312,6 +1585,7 @@ report_type_mapping = {
     ReportType.MathematicsReport.value: "generate_report_prompt",
     ReportType.ChemistryReport.value: "generate_report_prompt",
     ReportType.MaterialsReport.value: "generate_report_prompt",
+    ReportType.SEOReport.value: "generate_report_prompt",
 }
 
 
@@ -1341,6 +1615,7 @@ prompt_family_mapping = {
     PromptFamilyEnum.Granite33.value: Granite33PromptFamily,
     PromptFamilyEnum.STEM.value: STEMPromptFamily,
     PromptFamilyEnum.Materials.value: MaterialsPromptFamily,
+    PromptFamilyEnum.SEO.value: SEOPromptFamily,
 }
 
 

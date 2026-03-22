@@ -102,6 +102,11 @@ def get_retriever(retriever: str):
 
             return MaterialsProjectSearch
 
+        case "google_trends":
+            from gpt_researcher.retrievers import GoogleTrendsSearch
+
+            return GoogleTrendsSearch
+
         case _:
             return None
 

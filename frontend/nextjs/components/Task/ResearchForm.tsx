@@ -127,6 +127,17 @@ export default function ResearchForm({
           <option value="detailed_report">
             Detailed - In depth and longer (~5 min)
           </option>
+          <optgroup label="STEM Research">
+            <option value="physics_report">Physics Research Report</option>
+            <option value="mathematics_report">Mathematics Research Report</option>
+            <option value="chemistry_report">Chemistry Research Report</option>
+          </optgroup>
+          <optgroup label="Materials Science">
+            <option value="materials_report">Materials Science Report (Metals, Alloys, Ceramics)</option>
+          </optgroup>
+          <optgroup label="SEO &amp; Marketing">
+            <option value="seo_report">SEO Customer Acquisition Report</option>
+          </optgroup>
         </select>
       </div>
 
